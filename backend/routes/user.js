@@ -1,10 +1,10 @@
 const express=require('express')
+const {login,register}=require("../controllers/authcontroller")
 const router=express.Router();
 
 
-router.post("/signup",(req,res)=>{
-    console.log("hello")
-})
+router.post("/signup",register)
+router.post("/signin",login)
 
 
 
