@@ -2,6 +2,9 @@ const express=require('express');
 const User = require('../db');
 const {JWT_SECRET}=require("../config")
 const router=express.Router();
+const zod= require('zod')
+const bcrypt=require('bcryptjs')
+const jwt = require('jsonwebtoken');
 
 const signupSchema=zod.object({
     username:zod.string(),
@@ -23,6 +26,8 @@ router.post("/signup",async(req,res)=>{
     if(existinguser){
         return res.status(411).json("email already taken/ incorrect credentials")
     }
+    
+    const { username, password, firstName, lastName, role } = body;
     const hashedpassword= await bcrypt.hash(password,10);
     const user=new User({
         username,
@@ -45,10 +50,35 @@ router.post("/signup",async(req,res)=>{
 
  const signinSchema=zod.object({
     username:zod.string(),
-    password
+    password:zod.string(),
  })
 
-router.post("/signin",)
+router.post("/signin",async(req,res)=>{
+    const body=req.body;
+    const {success}=signinSchema.safeParse(body);
+    if(!success){
+        return res.status(411).json({msg: "wrong info / email already taken"})
+    }
+    const user=await User.findOne({
+        username:req.body.username
+    })
+
+    if(user){
+        const isPassvalid=await bcrypt.compare(body.password,user.password);
+        if(!isPassvalid){
+            res.status(411).json({msg:"wrong credentials"});
+        }
+        const token=jwt.sign({userId:user._id,},JWT_SECRET);
+        
+        res.status(200).json({
+            msg:"signin success",
+            token,
+            role:user.role
+        })
+        return;
+    }
+
+})
 
 
 
