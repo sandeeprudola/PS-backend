@@ -5,6 +5,7 @@ const router=express.Router();
 const zod= require('zod')
 const bcrypt=require('bcryptjs')
 const jwt = require('jsonwebtoken');
+const authmiddleware=require('../authmiddleware')
 
 const signupSchema=zod.object({
     username:zod.string(),
@@ -77,6 +78,31 @@ router.post("/signin",async(req,res)=>{
         })
         return;
     }
+
+})
+
+  const update=zod.object({
+    username:zod.string(),
+    firstName:zod.string(),
+    lastName:zod.string()
+  })
+router.put("/update",authmiddleware,async(req,res)=>{
+   try{
+    const {success}=update.safeParse(req.body);
+    if(!success){
+        return res.status(401).json({msg:"updation failed"})
+    }
+    await User.updateOne(
+        {_id:req.user_id},
+        {$set:req.body}
+    )
+    res.json({
+        msg:"user updated"
+    })
+   }
+   catch(err){
+     res.status(400).json({msg:"error while auth"})
+   }
 
 })
 
