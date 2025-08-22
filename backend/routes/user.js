@@ -1,5 +1,5 @@
 const express=require('express');
-const User = require('../db');
+const User=require('../models/User')
 const {JWT_SECRET}=require("../config")
 const router=express.Router();
 const zod= require('zod')
@@ -9,6 +9,7 @@ const authmiddleware=require('../authmiddleware')
 
 const signupSchema=zod.object({
     username:zod.string(),
+    email:zod.string(),
     password:zod.string(),
     firstName:zod.string(),
     lastName:zod.string(),
@@ -22,16 +23,18 @@ router.post("/signup",async(req,res)=>{
         return res.status(411).json({message: "email taken /wrong credentials"})
     }
     const existinguser=await User.findOne({
-        username:req.body.username
+        username:req.body.username,
+        email: body.email 
     })
     if(existinguser){
-        return res.status(411).json("email already taken/ incorrect credentials")
+        return res.status(411).json("email/username already taken or incorrect credentials")
     }
     
-    const { username, password, firstName, lastName, role } = body;
+    const { username,email,password, firstName, lastName, role } = body;
     const hashedpassword= await bcrypt.hash(password,10);
     const user=new User({
         username,
+        email,
         password: hashedpassword,
         firstName,
         lastName,
@@ -51,6 +54,7 @@ router.post("/signup",async(req,res)=>{
 
  const signinSchema=zod.object({
     username:zod.string(),
+    email:zod.string(),
     password:zod.string(),
  })
 
@@ -61,7 +65,8 @@ router.post("/signin",async(req,res)=>{
         return res.status(411).json({msg: "wrong info / email already taken"})
     }
     const user=await User.findOne({
-        username:req.body.username
+        username:req.body.username,
+        email:req.body.email
     })
 
     if(user){
