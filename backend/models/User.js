@@ -38,7 +38,7 @@ const UserSchema=new mongoose.Schema({
     },
     role:{
         type:String,
-        enum: ['patient_hearing', 'patient_speech', 'patient_both', 'employee', 'admin'],
+        enum: ['hearing', 'speech', 'both', 'employee', 'admin'],
         required:true
     }
 })
